@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Payment } from '../types';
 import { formatRupiah } from '../utils/currency';
+import { ShowPayment } from './ShowPayment';
 
 interface PaymentListProps {
   payments: Payment[];
@@ -10,6 +11,8 @@ interface PaymentListProps {
 export const PaymentList: React.FC<PaymentListProps> = ({ payments, onUpdateStatus }) => {
   const [openActionId, setOpenActionId] = useState<number | null>(null);
   const [loadingId, setLoadingId] = useState<number | null>(null);
+
+  const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
   const toggleAction = (id: number) => {
     setOpenActionId(openActionId === id ? null : id);
   };
@@ -24,13 +27,18 @@ export const PaymentList: React.FC<PaymentListProps> = ({ payments, onUpdateStat
     }
   };
 
+  const handleShowPayment = (payment: Payment) => {
+    setSelectedPayment(payment);
+    setOpenActionId(null);
+  };
+
   return (
     <div className="overflow-x-auto relative">
       <table className="min-w-full bg-white rounded-lg overflow-hidden">
         <thead className="bg-gray-100">
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sale ID</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment ID</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due Date</th>
@@ -38,9 +46,9 @@ export const PaymentList: React.FC<PaymentListProps> = ({ payments, onUpdateStat
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-200">
-          {payments.map((payment) => (
+          {payments.map((payment, index) => (
             <tr key={payment.id}>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{payment.id}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{index + 1}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{payment.penjualan.transaction_number}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                 {formatRupiah(payment.amount)}
@@ -61,13 +69,19 @@ export const PaymentList: React.FC<PaymentListProps> = ({ payments, onUpdateStat
               {loadingId === payment.id ? (
                   "Loading..."
                 ) : (
-                  <button
-                    onClick={() => toggleAction(payment.id)}
-                    className="text-gray-400 hover:text-gray-600 focus:outline-none"
-                    disabled={loadingId !== null}
-                  >
-                    Update
-                  </button>
+                  <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleShowPayment(payment)}
+                        className="text-indigo-600 hover:text-indigo-900 focus:outline-none"
+                        title="View Details"
+                      >Details</button>
+                      <button
+                        onClick={() => toggleAction(payment.id)}
+                        className="text-gray-500 hover:text-gray-700 focus:outline-none"
+                        disabled={loadingId !== null}
+                      >Update
+                      </button>
+                    </div>
                 )}
                 
                 {openActionId === payment.id && (
@@ -100,6 +114,13 @@ export const PaymentList: React.FC<PaymentListProps> = ({ payments, onUpdateStat
           ))}
         </tbody>
       </table>
+
+      {selectedPayment && (
+        <ShowPayment 
+          payment={selectedPayment} 
+          onClose={() => setSelectedPayment(null)} 
+        />
+      )}
     </div>
   );
 };
